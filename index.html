@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stop The Timer — Premium Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --gold:#C9A84C;
+  --gold-light:#F0D080;
+  --gold-dim:#8A6A20;
+  --onyx:#0A0A0C;
+  --obsidian:#111116;
+  --charcoal:#1A1A22;
+  --slate:#24242E;
+  --rim:#2E2E3A;
+  --text:#EEE8D5;
+  --muted:#7A7490;
+  --accent:#5C4FE8;
+  --green:#2ECC71;
+  --red:#E74C3C;
+}
+
+@keyframes shimmer{
+  0%{background-position:-200% center;}
+  100%{background-position:200% center;}
+}
+@keyframes pulse-ring{
+  0%{transform:scale(1);opacity:0.6;}
+  70%{transform:scale(1.15);opacity:0;}
+  100%{transform:scale(1.15);opacity:0;}
+}
+@keyframes tick-in{
+  0%{transform:scaleY(1.15);opacity:0.6;}
+  100%{transform:scaleY(1);opacity:1;}
+}
+@keyframes reveal{
+  0%{opacity:0;transform:translateY(14px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+@keyframes pop{
+  0%{transform:scale(0.7);opacity:0;}
+  70%{transform:scale(1.05);}
+  100%{transform:scale(1);opacity:1;}
+}
+@keyframes digit-flash{
+  0%,100%{color:var(--gold-light);}
+  50%{color:#fff;}
+}
+@keyframes spin-ring{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+@keyframes hot-glow{
+  0%,100%{text-shadow:0 0 20px rgba(231,76,60,0.6);}
+  50%{text-shadow:0 0 50px rgba(231,76,60,1);}
+}
+@keyframes win-glow{
+  0%,100%{box-shadow:0 0 30px rgba(46,204,113,0.25),inset 0 1px 0 rgba(255,255,255,0.05);}
+  50%{box-shadow:0 0 60px rgba(46,204,113,0.5),inset 0 1px 0 rgba(255,255,255,0.05);}
+}
+@keyframes confetti-drop{
+  0%{opacity:1;transform:translateY(-20px) rotate(0deg);}
+  100%{opacity:0;transform:translateY(80px) rotate(720deg);}
+}
+@keyframes scanline{
+  0%{transform:translateY(-100%);}
+  100%{transform:translateY(100vh);}
+}
+
+html,body{
+  width:100%;height:100%;
+  overflow:hidden;
+  background:var(--onyx);
+  font-family:'Rajdhani',sans-serif;
+  color:var(--text);
+}
+
+.screen{
+  width:100%;height:100dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Subtle scanline overlay */
+.screen::after{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,0.012) 3px,
+    rgba(255,255,255,0.012) 4px
+  );
+  pointer-events:none;z-index:0;
+}
+
+/* Top ribbon */
+.ribbon{
+  flex-shrink:0;position:relative;z-index:2;
+  background:linear-gradient(90deg,var(--gold-dim) 0%,var(--gold) 40%,var(--gold-light) 60%,var(--gold) 80%,var(--gold-dim) 100%);
+  background-size:200% auto;
+  animation:shimmer 4s linear infinite;
+  text-align:center;padding:7px 16px;
+  font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:#1A1200;
+}
+
+/* Body */
+.body{
+  flex:1;display:flex;flex-direction:column;
+  padding:14px 18px 16px;gap:10px;overflow:hidden;
+  position:relative;z-index:1;
+}
+
+/* Orb background accents */
+.body::before{
+  content:'';position:absolute;
+  width:280px;height:280px;
+  right:-80px;top:-60px;
+  background:radial-gradient(circle,rgba(201,168,76,0.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.body::after{
+  content:'';position:absolute;
+  width:200px;height:200px;
+  left:-60px;bottom:80px;
+  background:radial-gradient(circle,rgba(92,79,232,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Header */
+.header{flex-shrink:0;position:relative;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--gold);
+  margin-bottom:6px;
+}
+.eyebrow .dot{
+  width:5px;height:5px;background:var(--gold);border-radius:50%;
+  opacity:0.7;
+}
+.headline{
+  font-family:'Cinzel',serif;
+  font-size:clamp(22px,6.5vw,30px);
+  font-weight:900;line-height:1.05;
+  letter-spacing:1px;color:var(--text);
+}
+.headline em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.tagline{
+  font-size:11px;color:var(--muted);font-weight:500;
+  letter-spacing:0.5px;margin-top:4px;
+}
+
+/* Stats row */
+.stats{
+  flex-shrink:0;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+}
+.stat{
+  background:var(--charcoal);
+  border:1px solid var(--rim);
+  border-radius:10px;padding:10px 8px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.stat.featured{
+  background:linear-gradient(145deg,rgba(201,168,76,0.1),rgba(201,168,76,0.04));
+  border-color:var(--gold-dim);
+}
+.stat.featured::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.stat-label{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.stat-val{
+  font-family:'Cinzel',serif;
+  font-size:22px;font-weight:900;
+  color:var(--gold-light);line-height:1;
+}
+.stat.featured .stat-val{font-size:19px;color:#fff;}
+.stat-sub{font-size:8px;color:var(--muted);font-weight:600;margin-top:3px;}
+
+/* Tags */
+.tags{flex-shrink:0;display:flex;gap:5px;flex-wrap:wrap;}
+.tag{
+  background:var(--charcoal);
+  border:1px solid var(--rim);
+  border-radius:20px;padding:4px 11px;
+  font-size:9px;font-weight:700;letter-spacing:1px;
+  color:var(--gold);
+}
+
+/* Timer core */
+.timer-wrap{
+  flex-shrink:0;position:relative;
+}
+.timer-card{
+  background:var(--charcoal);
+  border:1px solid var(--rim);
+  border-radius:20px;
+  padding:16px 20px 14px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.timer-card::before{
+  content:'';position:absolute;
+  top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.timer-card::after{
+  content:'';position:absolute;
+  bottom:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,0.3),transparent);
+}
+
+.timer-label{
+  font-size:8px;font-weight:700;letter-spacing:4px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:6px;
+}
+
+/* Pulse ring around timer */
+.timer-ring-wrap{
+  position:relative;display:inline-block;
+}
+.pulse-ring{
+  position:absolute;inset:-12px;
+  border-radius:12px;
+  border:1px solid rgba(201,168,76,0.3);
+  opacity:0;
+}
+.pulse-ring.active{animation:pulse-ring 1.4s ease-out infinite;}
+
+.tdisp{
+  font-family:'Cinzel',serif;
+  font-size:clamp(58px,15vw,74px);
+  font-weight:900;
+  color:var(--gold-light);
+  line-height:1;letter-spacing:4px;
+  transition:color 0.3s;
+  display:block;
+}
+.tdisp.idle{color:var(--gold);}
+.tdisp.running{
+  color:#fff;
+  animation:tick-in 0.05s ease-out;
+}
+.tdisp.warm{color:#E8C050;}
+.tdisp.hot{
+  color:var(--red);
+  animation:hot-glow 0.5s ease-in-out infinite;
+}
+
+.hint{
+  font-size:10px;color:var(--muted);font-weight:500;
+  margin-top:8px;letter-spacing:0.3px;
+}
+.hint strong{color:var(--gold);font-weight:700;}
+
+/* Progress */
+.pgwrap{
+  flex-shrink:0;
+  height:3px;background:var(--charcoal);border-radius:4px;
+  border:none;overflow:hidden;position:relative;
+}
+.pgbar{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--gold-dim),var(--gold-light));
+  border-radius:4px;transition:width 0.05s linear;
+  position:relative;
+}
+.pgbar::after{
+  content:'';
+  position:absolute;right:0;top:-1px;bottom:-1px;width:12px;
+  background:linear-gradient(90deg,transparent,rgba(255,230,120,0.6));
+  filter:blur(2px);
+}
+
+/* Buttons */
+.btn-start{
+  width:100%;
+  background:linear-gradient(135deg,var(--gold-dim) 0%,var(--gold) 50%,var(--gold-light) 100%);
+  background-size:200% auto;
+  border:none;border-radius:14px;
+  font-family:'Cinzel',serif;font-size:14px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:#0D0A00;padding:15px 20px;cursor:pointer;
+  transition:background-position 0.3s,transform 0.1s;
+  position:relative;overflow:hidden;
+}
+.btn-start::before{
+  content:'';position:absolute;
+  top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+  transition:left 0.4s;
+}
+.btn-start:hover::before{left:150%;}
+.btn-start:hover{background-position:right center;}
+.btn-start:active{transform:scale(0.97);}
+
+.btn-stop{
+  width:100%;
+  background:transparent;
+  border:1.5px solid rgba(231,76,60,0.6);
+  border-radius:14px;
+  font-family:'Cinzel',serif;
+  font-size:20px;font-weight:700;
+  letter-spacing:4px;text-transform:uppercase;
+  color:var(--red);padding:14px 20px;cursor:pointer;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 20px rgba(231,76,60,0.15),inset 0 0 20px rgba(231,76,60,0.05);
+  transition:all 0.15s;
+}
+.btn-stop::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%,rgba(231,76,60,0.12),transparent);
+  animation:pulse-ring 1s ease-out infinite;
+}
+.btn-stop:active{transform:scale(0.96);border-color:rgba(231,76,60,0.9);}
+
+/* Divider */
+.div-line{
+  flex-shrink:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rim),transparent);
+}
+
+/* Result */
+.result-box{
+  flex:1;min-height:0;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:6px;
+  border-radius:18px;padding:16px;
+  position:relative;overflow:hidden;
+  animation:pop 0.45s cubic-bezier(.36,1.56,.64,1) both;
+}
+.result-box.win{
+  background:linear-gradient(145deg,rgba(46,204,113,0.08),rgba(39,174,96,0.04));
+  border:1px solid rgba(46,204,113,0.25);
+  animation:pop 0.45s cubic-bezier(.36,1.56,.64,1) both, win-glow 2s ease-in-out 0.5s infinite;
+}
+.result-box.lose{
+  background:linear-gradient(145deg,rgba(201,168,76,0.07),rgba(92,79,232,0.04));
+  border:1px solid rgba(201,168,76,0.2);
+}
+
+.r-icon{font-size:28px;line-height:1;margin-bottom:2px;}
+.r-title{
+  font-family:'Cinzel',serif;
+  font-size:clamp(20px,5.5vw,26px);
+  font-weight:900;letter-spacing:3px;
+  text-align:center;
+}
+.r-title.win{color:var(--green);}
+.r-title.lose{color:var(--gold);}
+
+.r-sub{
+  font-size:10px;color:var(--muted);
+  font-weight:500;letter-spacing:0.5px;
+  text-align:center;line-height:1.6;
+  max-width:260px;
+}
+
+/* Coupon */
+.coupon-wrap{width:100%;position:relative;margin-top:4px;}
+.coupon{
+  background:linear-gradient(135deg,#1A1200,#2A2000);
+  border:1px solid var(--gold-dim);
+  border-radius:14px;padding:14px 20px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.coupon::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.coupon::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+}
+/* Notches */
+.notch{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;border-radius:50%;
+  background:var(--onyx);border:1px solid var(--gold-dim);
+}
+.notch.l{left:-7px;}
+.notch.r{right:-7px;}
+.coupon-label{
+  font-size:8px;font-weight:700;letter-spacing:4px;
+  text-transform:uppercase;color:var(--gold-dim);
+  margin-bottom:6px;
+}
+.coupon-code{
+  font-family:'Cinzel',serif;
+  font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  letter-spacing:8px;line-height:1;
+}
+.coupon-note{
+  font-size:9px;color:var(--gold-dim);
+  font-weight:600;letter-spacing:1px;
+  margin-top:6px;
+}
+
+/* Miss */
+.miss-tag{
+  display:inline-block;
+  background:rgba(201,168,76,0.08);
+  border:1px solid rgba(201,168,76,0.2);
+  color:var(--gold);font-size:9px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:4px 14px;border-radius:20px;
+}
+.miss-line{
+  font-family:'Cinzel',serif;
+  font-size:clamp(15px,4.5vw,20px);
+  font-weight:700;letter-spacing:2px;
+  color:var(--text);text-align:center;
+}
+
+/* Confetti particles */
+.confetti-container{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;
+}
+.confetti-p{
+  position:absolute;width:6px;height:6px;
+  border-radius:1px;
+  opacity:0;
+}
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="ribbon">✦ &nbsp; Valid on purchase of ₹2,500 &amp; above &nbsp; ✦</div>
+
+  <div class="body">
+
+    <div class="header">
+      <div class="eyebrow"><span class="dot"></span> Exclusive Challenge <span class="dot"></span></div>
+      <div class="headline">STOP THE <em>TIMER</em></div>
+      <div class="tagline">Hit 10.00s exactly — claim your ₹1,100 instant reward</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat featured">
+        <div class="stat-label">Win Up To</div>
+        <div class="stat-val">₹1,100</div>
+        <div class="stat-sub">Instant Discount</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Target</div>
+        <div class="stat-val">10.00</div>
+        <div class="stat-sub">Seconds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Attempts</div>
+        <div class="stat-val">01</div>
+        <div class="stat-sub">Per Purchase</div>
+      </div>
+    </div>
+
+    <div class="tags">
+      <span class="tag">⌛ Stop at 10.00s</span>
+      <span class="tag">± 0.005s to win</span>
+      <span class="tag">🔐 One shot only</span>
+    </div>
+
+    <div class="timer-wrap">
+      <div class="timer-card">
+        <div class="timer-label">Elapsed Time</div>
+        <div class="timer-ring-wrap">
+          <div class="pulse-ring" id="pr"></div>
+          <span class="tdisp idle" id="td">00.00</span>
+        </div>
+        <div class="hint">Stop at exactly <strong>10.00s</strong> — within 5ms to win!</div>
+      </div>
+    </div>
+
+    <div class="pgwrap"><div class="pgbar" id="pb"></div></div>
+
+    <div id="s1">
+      <button class="btn-start" onclick="startG()">▶ &nbsp; Begin The Challenge</button>
+    </div>
+    <div id="s2" style="display:none;">
+      <button class="btn-stop" onclick="stopG(false)">⏹ &nbsp; STOP!</button>
+    </div>
+
+    <div class="div-line" id="dl" style="display:none;"></div>
+
+    <!-- Result panel -->
+    <div class="result-box" id="rb">
+      <div class="confetti-container" id="cc"></div>
+      <div class="r-icon" id="ri"></div>
+      <div class="r-title" id="rt"></div>
+
+      <div id="rmiss" style="display:none;width:100%;text-align:center;display:none;flex-direction:column;align-items:center;gap:5px;">
+        <span class="miss-tag">So Close!</span>
+        <div class="miss-line">Try Again Next Purchase</div>
+        <div class="r-sub" id="rs"></div>
+      </div>
+
+      <div id="rwin" style="display:none;width:100%;flex-direction:column;align-items:center;gap:8px;">
+        <div class="r-sub" id="rws"></div>
+        <div class="coupon-wrap">
+          <div class="coupon">
+            <div class="notch l"></div>
+            <div class="notch r"></div>
+            <div class="coupon-label">Your Discount Code</div>
+            <div class="coupon-code">STOP1100</div>
+            <div class="coupon-note">Apply at checkout · Min. ₹2,500 order</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div>
+
+<script>
+let t0=null,af=null,done=false,used=false;
+
+function p2(n){return(n<10?'0':'')+n;}
+
+function startG(){
+  if(used)return;
+  done=false;t0=performance.now();
+  document.getElementById('s1').style.display='none';
+  document.getElementById('s2').style.display='block';
+  document.getElementById('rb').style.display='none';
+  document.getElementById('dl').style.display='none';
+  document.getElementById('rmiss').style.display='none';
+  document.getElementById('rwin').style.display='none';
+  document.getElementById('pr').classList.add('active');
+  tick();
+}
+
+function tick(){
+  if(done)return;
+  let e=(performance.now()-t0)/1000;
+  let sec=Math.floor(e);
+  let cs=Math.floor((e-sec)*100);
+  document.getElementById('td').textContent=p2(sec)+'.'+p2(cs);
+  document.getElementById('pb').style.width=Math.min((e/15)*100,100)+'%';
+  let td=document.getElementById('td');
+  if(e>=12){td.className='tdisp hot';}
+  else if(e>=7){td.className='tdisp warm';}
+  else{td.className='tdisp running';}
+  if(e>=20){stopG(true);return;}
+  af=requestAnimationFrame(tick);
+}
+
+function stopG(auto){
+  if(done)return;
+  done=true;used=true;
+  cancelAnimationFrame(af);
+  document.getElementById('s2').style.display='none';
+  document.getElementById('pr').classList.remove('active');
+
+  let e=(performance.now()-t0)/1000;
+  let sec=Math.floor(e);let cs=Math.floor((e-sec)*100);
+  let fd=p2(sec)+'.'+p2(cs);
+  let td=document.getElementById('td');
+  td.textContent=fd;td.className='tdisp idle';
+
+  let diff=Math.abs(e-10.0);
+  let rb=document.getElementById('rb');
+  rb.style.display='flex';
+  document.getElementById('dl').style.display='block';
+
+  if(diff<=0.005){
+    rb.className='result-box win';
+    document.getElementById('ri').textContent='🏆';
+    let rt=document.getElementById('rt');
+    rt.textContent='YOU WON!';rt.className='r-title win';
+    document.getElementById('rwin').style.display='flex';
+    document.getElementById('rmiss').style.display='none';
+    document.getElementById('rws').textContent='Stopped at '+fd+'s — Perfect timing! ₹1,100 discount unlocked.';
+    spawnConfetti();
+  } else {
+    rb.className='result-box lose';
+    let close=diff<=0.3;
+    document.getElementById('ri').textContent=close?'😱':'🎯';
+    let rt=document.getElementById('rt');
+    rt.textContent=close?'SO CLOSE!':'NOT QUITE';rt.className='r-title lose';
+    document.getElementById('rmiss').style.display='flex';
+    document.getElementById('rwin').style.display='none';
+    document.getElementById('rs').textContent=
+      'You stopped at '+fd+'s. Target was 10.00s — you were '+(diff*1000).toFixed(0)+'ms away. Better luck next purchase!';
+  }
+}
+
+function spawnConfetti(){
+  let cc=document.getElementById('cc');
+  let colors=['#C9A84C','#F0D080','#2ECC71','#ffffff','#E8C050'];
+  for(let i=0;i<20;i++){
+    let el=document.createElement('div');
+    el.className='confetti-p';
+    el.style.left=Math.random()*100+'%';
+    el.style.top=Math.random()*20+'%';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.transform='rotate('+Math.random()*360+'deg)';
+    let dur=(0.8+Math.random()*1.2).toFixed(2)+'s';
+    let delay=(Math.random()*0.6).toFixed(2)+'s';
+    el.style.animation='confetti-drop '+dur+' ease-out '+delay+' both';
+    cc.appendChild(el);
+  }
+}
+</script>
+</body>
+</html>
